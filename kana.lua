@@ -1,7 +1,9 @@
--- 敵の名前（または一番近い敵を探す）
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
 local function getNearestEnemy()
-    local player = game.Players.LocalPlayer
-    local character = player.Character or player.CharacterAdded:Wait()
+    local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
     local root = character:WaitForChild("HumanoidRootPart")
 
     local closestEnemy = nil
@@ -20,22 +22,35 @@ local function getNearestEnemy()
     return closestEnemy
 end
 
--- TP処理
-local function teleportAboveEnemy(enemy)
+local function slideToEnemy(enemy)
     if not enemy or not enemy:FindFirstChild("HumanoidRootPart") then return end
 
-    local player = game.Players.LocalPlayer
-    local character = player.Character or player.CharacterAdded:Wait()
+    local character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
     local root = character:WaitForChild("HumanoidRootPart")
 
-    root.CFrame = enemy.HumanoidRootPart.CFrame + Vector3.new(0, 5, 0)
+    local goalPosition = enemy.HumanoidRootPart.Position + Vector3.new(0, 5, 0)
+
+    local tweenInfo = TweenInfo.new(
+        0.5, -- 所要時間（秒）
+        Enum.EasingStyle.Quad, -- 動きの種類（滑らか）
+        Enum.EasingDirection.Out -- 動きの終わり方
+    )
+
+    local tween = TweenService:Create(
+        root,
+        tweenInfo,
+        {CFrame = CFrame.new(goalPosition)}
+    )
+
+    tween:Play()
 end
 
 -- 実行
 local enemy = getNearestEnemy()
 if enemy then
-    teleportAboveEnemy(enemy)
-    print("敵の上にテレポートしました: " .. enemy.Name)
+    slideToEnemy(enemy)
+    print("滑らかに移動中：" .. enemy.Name)
 else
     print("敵が見つかりませんでした。")
 end
+
